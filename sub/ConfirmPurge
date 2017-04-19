@@ -1,0 +1,6 @@
+sub ConfirmPurge(counter)
+	local reallypurge
+	reallypurge = alert Str$(counter) + " day's records sent to the Trash.", "OK, fine", "NOOO! restore them!", "", "none"
+	return reallypurge
+end sub
+

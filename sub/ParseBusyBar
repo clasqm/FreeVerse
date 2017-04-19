@@ -1,0 +1,19 @@
+sub ParseBusyBar(appointment$)
+	local length,num, fromtime, totime, z$(3), y$(2)
+	// strip off angle brackets - leave spaces in case user "cleaned things up"
+	length = len(appointment$) -2
+	appointment$ = mid$(appointment$, 2, length)
+	// NOW strip off spaces
+	appointment$= trim$(appointment$)
+	// by now we should have "(X)X:00 to (Y)Y:00"
+	//let's split it in half
+	num = token(appointment$, z$(), " ")
+	//Now repeat to get the hour part for FROM
+	num = token(z$(1),y$(),":")
+	fromtime = val(y$(1))
+	//Now repeat to get the hour part for TO
+	num = token(z$(3),y$(),":")
+	totime = val(y$(1))
+	PaintBusyBar(fromtime, totime)
+end sub
+

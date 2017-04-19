@@ -1,0 +1,10 @@
+sub MakeEntryBox(boxname$)
+local CenterX, CenterY
+	CenterX = INT((Window Get "MainWindow", "Width")/2) + (Window Get "MainWindow","Position-X")
+	CenterY =INT((Window Get "MainWindow", "Height")/2) + (Window Get "MainWindow","Position-Y")
+	Window Open CenterX - 100, CenterY - 100 to CenterX + 100, CenterY + 100, boxname$, ""
+	Window Set boxname$, "Look", "Modal"
+	Window Set boxname$, "Feel", "Floating-App"
+	Window Set boxname$, "Flags", "Not-Resizable"
+end sub
+

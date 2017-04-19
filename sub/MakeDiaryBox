@@ -1,0 +1,16 @@
+sub MakeDiaryBox()
+	local enterthis$
+	MakeEntryBox("DiaryBox")
+	Draw Text 30,20, "Enter a new Diary Item","DiaryBox"
+	Draw Line 30,23 to 170,23, "DiaryBox"
+	draw line 4,29 to 196,29, "DiaryBox" //upper horizontal
+	draw line 196,29 to 196,161, "DiaryBox"//right vertical
+	draw line 196,161 to 4,161, "DiaryBox"//LOWER HORIZONTAL
+	draw line 4,161 to 4,29, "DiaryBox" //left vertical
+	TextEdit 5, 30 to 195,160, "DiaryTextEdit",0, "DiaryBox"
+	enterthis$= "§ Dear Diary,\n\n"
+	TextEdit Add "DiaryTextEdit", enterthis$
+	Button 5,170 to 95,190,"NewDiaryItemCancelButton","Cancel", "DiaryBox"
+	Button 105,170 to 195,190, "NewDiaryItemOKButton", "Accept", "DiaryBox"
+end sub
+

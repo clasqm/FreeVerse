@@ -1,0 +1,297 @@
+
+//Yabadabbadoo notification
+########DO NOT RENAME THIS FILE!########
+//Yabadabbadoo needs it to function.
+
+//Main Message Loop
+dim msg$(1)
+while(not leavingLoop)
+	nCommands = token(message$, msg$(), "|")
+
+	for everyCommand = 1 to nCommands
+		if(DEBUG and msg$(everyCommand)<>"") print msg$(everyCommand)
+
+		switch(msg$(everyCommand))
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////QUIT///////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "_QuitRequested":
+			case "MainWindow:_QuitRequested":
+			case "MenuView:File:Quit":
+				SaveFile()
+				leavingLoop = true
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////HELP///////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "HelpBox:_QuitRequested":
+				window close "HelpBox"
+				break
+			case "MenuView:Help:Help":
+				ShowHelp()
+				break
+			case "MenuView:Help:HTML Help":
+				ShowHTMLHelp()
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////ABOUT///////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "MenuView:Help:About":
+				Alert ProgramName$ + " " + ProgramVersion$ + "\n" + "by " + AuthorName$ +"\n\n" + ProgramBriefDescription$ + "\n" + ProgramLicense$ + "\n" + ProgramAcknowledgements$, "OK", "none"
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////GO TO TODAY////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "TodayButton":
+			case "MenuView:Date:Today":
+				SaveFile()
+				SetTodaysDate():FillDayList()
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////GO TO NEXT MONTH///////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "NextMonthButton":
+			case "MenuView:Date:Next Month":
+				SaveFile()
+				GetDate$ = SetMonth$("next")
+				Calendar Set "DateSetter", GetDate$
+				GetDate$ = ""  //refresh
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////GO TO LAST MONTH///////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "MenuView:Date:Last Month":
+				SaveFile()
+				GetDate$ = SetMonth$("last")
+				Calendar Set "DateSetter", GetDate$
+				GetDate$ = ""  //refresh
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			/////////////////////////////////EDIT EXTERNALLY///////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			Case "EditorButton":
+			case "MenuView:File:View in Editor":
+				SaveFile()
+				system("/boot/system/apps/StyledEdit " + CurrentFile$ + " &")
+				break
+			Case "RefreshButton":
+			case "MenuView:File:Refresh":
+				GetDate$=""
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////PURGE//////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "MenuView:File:Purge Database":
+				SaveFile()
+				MainUIGrayOut(0,"Disable")
+				MakePurgeBox()
+				break
+			case "PurgeExitButton":
+				Window Close "PurgeBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "PurgeAllButton":
+				PurgeAll()
+				Window Close "PurgeBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "PurgeSearchResultsButton":
+				PurgeSearchResults()
+				Window Close "PurgeBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case"PurgeLastYearButton":
+				
+				Window Close "PurgeBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "PurgeFutureItemsButton":
+				
+				Window Close "PurgeBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "PurgeNoAppointmentsButton":
+				
+				Window Close "PurgeBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////LABELS/////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "AppLabelButton":
+			case "MenuView:Labels:Appointments":
+				Textedit Add "DayCont","APPOINTMENTS\n==========\n"
+				break
+			case "ToDoLabelButton":
+			case "MenuView:Labels:To-Dos":
+				Textedit Add "DayCont","TO-DOs\n=====\n"
+				break
+			case "MenuView:Labels:To-Do: Shopping":
+				Textedit Add "DayCont","Shopping\n--------------\n"
+				break
+			case "DiaryLabelButton":
+			case "MenuView:Labels:Diary":
+				Textedit Add "DayCont","DIARY\n====\n"
+				break
+			case "MenuView:Labels:Diary: Highpoints":
+				Textedit Add "DayCont","Today's Highpoints\n-----------------------------\n"
+				break
+			case "MenuView:Labels:Diary: Lowpoints":
+				Textedit Add "DayCont","Today's Lowpoints\n----------------------------\n"
+				break
+			case "MenuView:Labels:Diary: Accomplishments":
+				Textedit Add "DayCont","Today's Accomplishments\n----------------------------------------\n"
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////APPOINTMENTS///////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "NewAppButton":
+			case "MenuView:Entries:Appointment":
+				MainUIGrayOut(0,"Disable")
+				MakeAppointmentBox()
+				break
+			case "NewAppointmentCancelButton":
+				Window Close "AppointmentBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "NewAppointmentOKButton":
+				if Spincontrol Get "AppointmentToSpincontrol" < Spincontrol Get "AppointmentFromSpincontrol" then
+					Alert "End of appointment before the Start!\nPlease try again.", "OK", "warning"
+					Spincontrol set "AppointmentToSpincontrol",24
+					break
+				end if
+				Textedit Add "DayCont", GetNewAppointment$()
+				Window Close "AppointmentBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			//////////////////////////////////TO-DOS/////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "NewToDoButton":
+			case "MenuView:Entries:To-Do":
+				MainUIGrayOut(0,"Disable")
+				MakeToDoBox()
+				break
+			case "NewToDoItemCancelButton":
+				Window Close "ToDoBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "NewToDoItemOKButton":
+				Textedit Add "DayCont", GetNewToDoItem$()
+				Window Close "ToDoBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////DIARY ENTRIES//////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "NewDiaryButton":
+			case "MenuView:Entries:Diary":
+				MainUIGrayOut(0,"Disable")
+				MakeDiaryBox()
+				break
+			case "NewDiaryItemCancelButton":
+				Window Close "DiaryBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "NewDiaryItemOKButton":
+				Textedit Add "DayCont", GetNewDiaryItem$()
+				Window Close "DiaryBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			//////////////////////////////////EXTRAS//////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "MenuView:Extras:Thought for the Day":
+				Textedit Add "DayCont","THOUGHT FOR THE DAY\n===============\n" + system$("fortune") + "\n"
+				Menu Set "Extras", "Thought for the Day", "disable", "MenuView"
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			//////////////////////////////////SEARCH//////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "SearchButton":
+			case "MenuView:File:Search":
+				SaveFile()
+				MainUIGrayOut(0,"Disable")
+				GoSearch(TextControl Get$ "SearchBox", SearchResults$, Datadir$)
+				break
+			case "SearchWin:_QuitRequested":
+				Window Close "SearchWin"
+				MainUIGrayOut(1,"Enable")
+				TextControl Clear "SearchBox"
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			////////////////////////////end of switches/////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			default:
+				break
+		end switch
+			///////////////////////////////////////////////////////////////////////////////////
+			///////////////////Check if user pressed ENTER in Searchbox////////////////////////
+			///////////////////////////////////////////////////////////////////////////////////		
+		tempval$=(msg$(everyCommand))
+		if left$(tempval$,10) = "SearchBox:" then
+			SaveFile()
+			MainUIGrayOut(0,"Disable")
+			GoSearch(mid$(tempval$,11), SearchResults$, Datadir$)
+		end if
+			///////////////////////////////////////////////////////////////////////////////////
+			///////////////////////Check for searchdisplay selection///////////////////////////
+			///////////////////////////////////////////////////////////////////////////////////
+		tempval$=(msg$(everyCommand))
+		if left$(tempval$,22) = "SearchDisplay:_Invoke:" then
+			SaveFile()
+			tempval$ = mid$(tempval$,23)
+			tempval$ = columnbox get$ "SearchDisplay", 1, val(tempval$)
+			Calendar Set "DateSetter", tempval$
+			Window Close "SearchWin"
+			MainUIGrayOut(1,"Enable")
+			TextControl Clear "SearchBox"
+		endif
+			///////////////////////////////////////////////////////////////////////////////////
+			///////////CHECK FOR DATE CHANGE AND REPAINT DATA IF NECESSARY/////////////////////
+			///////////////////////////////////////////////////////////////////////////////////
+		tempval$=(msg$(everyCommand))
+		if left$(tempval$,16) = "DayList:_Select:" then
+			if val(mid$(tempval$,17,2)) < 10 tempval$= left$(tempval$,16) + "0" + right$(tempval$,1)
+			tempval$ = right$(tempval$,2) + right$(GetDate$,8)
+			Calendar Set "DateSetter", tempval$
+		end if
+	next everyCommand
+
+	//use GoGetDate$() here to see if the date has changed
+	tempval$=GoGetDate$()
+	if tempval$ <> GetDate$ then
+		
+		//Save the current file before you do anything else
+		if GetDate$ <> "" SaveFile() //no save if a refresh has been requested
+		
+		//If only the day has changed, we can just reposition the selection in the listbox
+		if right$(GetDate$,7)=right$(tempval$,7) then
+			Listbox select "DayList",val(left$(tempval$,2))
+			GetDate$=tempval$
+		//Otherwise, we need to redraw the listbox
+		else
+			GetDate$=tempval$
+			FillDayList()
+		end if
+		
+		// Change titlebar
+		Window Set "MainWindow", "Title", "FreeVerse - " + GetDate$
+		
+		// Empty the BusyBar in preparation to repaint it
+		ClearBusyBar()	
+		
+		// Now get current date's contents and pour it into the textedit
+		ReadAndDisplay()
+
+	end if
+wend
+
+///////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////END OF MAIN LOOP///////////////////////////////////////////
+//////////////////////////////CLOSING DOWN ////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+CloseMainWindow(Settingsfile$)
+
+end
+

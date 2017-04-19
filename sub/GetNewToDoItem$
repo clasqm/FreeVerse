@@ -1,0 +1,6 @@
+Sub GetNewToDoItem$()
+	local ReturnThis$
+	ReturnThis$ = (TextEdit Get$ "ToDoTextEdit")
+	Return ReturnThis$
+End sub
+

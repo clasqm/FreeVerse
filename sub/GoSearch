@@ -1,0 +1,16 @@
+sub GoSearch(searchtext$, SearchResults$, Datadir$)
+	local dothis$,SearchResults2$
+	searchtext$ = trim$(searchtext$)
+	if searchtext$= "" then
+		alert "No Search text supplied. Please enter something to search for.", "OK", "None"
+		MainUIGrayOut(1,"Enable")
+		Return
+	else
+		SearchResults2$ = SearchResults$ + "2"
+		dothis$ = "cd " + Datadir$ + "; grep -i '" + searchtext$ + "' * > " + SearchResults2$:system(dothis$)
+		dothis$ = "sort -n -t- -k3,4 -k2,2 -k1,2 " + SearchResults2$ + ">" + SearchResults$:system(dothis$)
+		dothis$ = "rm -f "+ SearchResults2$: system(dothis$)
+	end if
+	ShowSearch(SearchResults$)
+end sub
+

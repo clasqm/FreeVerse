@@ -1,0 +1,10 @@
+sub PaintBusyBar(fromh,toh)
+	local wheretopaint$, dothis$
+	if fromh = toh toh=toh +1
+	for f = fromh+1 to toh
+		wheretopaint$= "indicator" + str$(f-1)
+		draw flush wheretopaint$
+		draw text 0,10, "■",wheretopaint$
+	next f
+end sub
+

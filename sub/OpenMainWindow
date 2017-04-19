@@ -1,0 +1,81 @@
+sub OpenMainWindow(Settingsfile$)
+	local winwidth, winheight, buttonwidth, across, acrossend, updown, updownend, viewname$	
+	//Read positions settings from settings file
+	//create the settings file if it does not exist
+	open #1,"/boot/home/config/settings/FreeVerse/FreeVerse.settings", "a": close #1 
+	//Open for Append does not seem to work with any other way
+	// and this way does not work without the literal filename!
+	open Settingsfile$ for reading as #1
+	line input #1 across
+	line input #1 updown
+	close #1
+	if across = 0 or updown = 0 then //ie if the settings file was empty
+		across = 50
+		updown = 50
+	endif
+	if across > Peek("DesktopWidth") or updown > Peek("DesktopHeight") then //ie if user is using a smaller screensize than last time
+		across = 50
+		updown = 50
+	endif
+	//edit below to adjust dimensions of main window
+	acrossend = across + 485
+	updownend = updown + 606	
+	window open across,updown to acrossend,updownend, "MainWindow", "FreeVerse - "
+	Window Set "MainWindow", "Flags", "Not-Zoomable, Not-Resizable, Accept-First-Click"
+	winwidth = acrossend-across: winheight = updownend-updown
+	/////////////Menu view//////////////////	
+	view 0,0 to winwidth,20, "MenuView", "MainWindow"
+		Menu "File", "View in Editor", "E", "MenuView"
+		Menu "File", "Refresh", "R", "MenuView"
+		Menu "File", "Purge Database", "P", "MenuView"
+		Menu "File", "Search", "F", "MenuView"
+		Menu "File", "Quit", "Q", "MenuView"
+		Menu "Date", "Today", "CT", "MenuView"
+		Menu "Date", "Next Month", "CM", "MenuView"
+		Menu "Date", "Last Month", "CL", "MenuView"
+		Menu "Labels", "Appointments","SA", "MenuView"
+		Menu "Labels", "To-Dos","ST", "MenuView"
+		Menu "Labels", "To-Do: Shopping","SS", "MenuView"
+		Menu "Labels", "Diary","SD", "MenuView"
+		Menu "Labels", "Diary: Highpoints","SH", "MenuView"
+		Menu "Labels", "Diary: Lowpoints","SL", "MenuView"
+		Menu "Labels", "Diary: Accomplishments","SP", "MenuView"
+		Menu "Entries", "Appointment","A", "MenuView"
+		Menu "Entries", "To-Do","T", "MenuView"
+		Menu "Entries", "Diary","D", "MenuView"
+		Menu "Extras", "Thought for the Day", "", "MenuView"
+		menu "Help", "Help", "H","MenuView"
+		menu "Help", "HTML Help", "","MenuView"
+		menu "Help", "About", "","MenuView"
+	///////////////top row of widgets below menu //////////////
+	view 165,15 to winwidth, 50,"TopView", "MainWindow"
+		Button 100,7 to 175,32,"TodayButton", "Today", "TopView"
+		Button 180,7 to 280, 32,"NextMonthButton", "Next Month", "TopView"
+		Calendar 0,8,"DateSetter","DDMMYYYY-","", "TopView"
+	/////////////container for days of month////////////////////
+	view 0, 20 to 160, winheight, "MidView", "MainWindow"
+		listbox 2,0 to 160,winheight - 20, "DayList" ,0,"MidView"
+	////////////container for entered data/////////////////////
+	view 165,55 to winwidth, winheight, "TextView", "MainWindow"
+		textedit 1,1 to winwidth - 200,400, "DayCont", 1, "TextView"
+		Text 10, 405, "newlabels","Insert Labels", "TextView"
+		Button 5,418 to 132,443, "AppLabelButton", "Appointments", "TextView"
+		Button 137,418 to 214,443, "ToDoLabelButton", "To-Dos", "TextView"
+		Button 219,418 to 310,443, "DiaryLabelButton", "Diary", "TextView"
+		text 10, 450, "newentries","Insert New ...", "TextView"
+		Button 5,464 to 132,489, "NewAppButton", "Appointment", "TextView"
+		Button 137,464 to 214,489, "NewToDoButton", "To-Do", "TextView"
+		Button 219,464 to 310,489, "NewDiaryButton", "Diary", "TextView"		
+		text 5,495, "searchtext", "Search for ...", "TextView"
+		textcontrol 2,510 to 214,530, "SearchBox", "","","TextView"
+		Button 219,507 to 310,532, "SearchButton", "Search!", "TextView"
+		text 290,3, "zerohours", "00h","TextView"
+		//create column of indicators with names from indicator0 to indicator23
+		for f = 0 to 23
+			viewname$ = "indicator"+str$(f)
+			view winwidth-25, (f * 15) +80 to winwidth - 10,(f * 15) + 92, viewname$,"MainWindow"
+			draw text 0,10, "□", viewname$ 
+		next f 
+			text 290,392, "24hours", "24h","TextView"
+end sub
+

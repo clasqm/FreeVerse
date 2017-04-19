@@ -1,0 +1,40 @@
+sub MainUIGrayOut(black, black$)
+//	While subsdiary window is up, disable the main window's UI (black = 0, black$= "Disable")
+// 	Re-enable it again with this same routing by setting black to 1 and black$ to "Enable"
+	Menu Set "File", "Purge Database", black$, "MenuView"
+	Menu Set "File", "View in Editor", black$, "MenuView"
+	Menu Set "File", "Refresh", black$, "MenuView"
+	Menu Set "File", "Search", black$, "MenuView"
+//	Menu Set "File", "Quit", black$, "MenuView"      // Let's let the user quit at any time
+	Menu Set "Date", "Today", black$, "MenuView"
+	Menu Set "Date", "Next Month", black$, "MenuView"
+	Menu Set "Date", "Last Month", black$, "MenuView"
+	Menu Set "Labels", "Appointments",black$, "MenuView"
+	Menu Set "Labels", "To-Dos",black$, "MenuView"
+	Menu Set "Labels", "To-Do: Shopping",black$, "MenuView"
+	Menu Set "Labels", "Diary",black$, "MenuView"
+	Menu Set "Labels", "Diary: Highpoints",black$, "MenuView"
+	Menu Set "Labels", "Diary: Lowpoints",black$, "MenuView"
+	Menu Set "Labels", "Diary: Accomplishments",black$, "MenuView"
+	Menu Set "Entries", "Appointment",black$, "MenuView"
+	Menu Set "Entries", "To-Do",black$, "MenuView"
+	Menu Set "Entries", "Diary",black$, "MenuView"
+	Menu Set "Extras", "Thought for the Day", black$, "MenuView"
+	Menu Set "Extras", "Today in History", black$, "MenuView"
+	Menu Set "Help", "Help", black$,"MenuView"
+	Menu Set "Help", "HTML Help", black$,"MenuView"
+	Menu Set "Help", "About", black$,"MenuView"
+	
+	Option Set "TodayButton", "Enabled", black
+	Option Set "NextMonthButton", "Enabled", black
+	Option Set "DateSetter", "Enabled", black
+	Option Set "AppLabelButton", "Enabled", black
+	Option Set "ToDoLabelButton", "Enabled", black
+	Option Set "DiaryLabelButton", "Enabled", black
+	Option Set "NewAppButton",  "Enabled", black
+	Option Set "NewToDoButton", "Enabled", black
+	Option Set "NewDiaryButton", "Enabled", black
+	Option set "SearchButton", "Enabled", black
+
+end sub
+

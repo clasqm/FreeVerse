@@ -1,0 +1,6 @@
+sub SaveFile()
+		// not bothering to check for changes, just save the damn thing
+		open CurrentFile$ for writing as #1
+		print #1,Textedit Get$ "DayCont"
+		close #1
+end sub

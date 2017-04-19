@@ -1,0 +1,8 @@
+sub SetTodaysDate()
+	//use date$ to solve problem of session stretching over midnight.
+	local todaysdate$
+	todaysdate$=date$ //Use just once just in case this gets called exactly at midnight!
+	todaysdate$= mid$(todaysdate$,6,2) + "-" + mid$(todaysdate$,3,2) + "-" + mid$(todaysdate$,9,4)
+	Calendar Set "DateSetter", todaysdate$
+end sub
+

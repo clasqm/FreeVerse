@@ -1,0 +1,22 @@
+sub ShowSearch(SearchResults$)
+local CenterX, CenterY, dothis$, item$, row
+	CenterX = INT((Window Get "MainWindow", "Width")/2) + (Window Get "MainWindow","Position-X")
+	CenterY = INT((Window Get "MainWindow", "Height")/2) + (Window Get "MainWindow","Position-Y")
+	Window Open CenterX - 200, CenterY - 200 to CenterX + 200, CenterY + 200, "SearchWin", "Search Results"
+	Window Set "SearchWin", "Feel", "Floating-App"
+	Window Set "SearchWin", "Flags", "Not-Resizable"
+	columnbox 1,1 to 400,400, "SearchDisplay",0 , "resizable", "SearchWin"
+	tooltip "SearchDisplay", "Click to select\nDouble-click to activate"
+	columnbox column "SearchDisplay", "Date", 1, 200, 100, 100, "align-left"
+	columnbox column "SearchDisplay", "Content", 2, 350, 200, 300, "align-left"
+	open SearchResults$ for reading as #1
+	row = 1
+	while(not eof(1))
+		line input #1 item$
+		columnbox add "SearchDisplay", 1, row, 16, left$(item$, 10)
+		columnbox add "SearchDisplay", 2, row, 16, mid$(item$, 12,len(item$))
+		row = row + 1
+	wend
+	close #1
+end sub
+

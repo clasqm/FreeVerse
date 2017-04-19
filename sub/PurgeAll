@@ -1,0 +1,10 @@
+sub PurgeAll()
+local reallypurge
+	reallypurge = alert "Really delete the entire database?\nThis CANNOT be undone!", "Yes", "No", "", "warning"
+	if reallypurge = 1 then
+		system("rm -f /boot/home/config/settings/FreeVerse/data/*")
+		TextEdit Clear "DayCont"
+		ClearBusyBar()
+	end if
+end sub
+

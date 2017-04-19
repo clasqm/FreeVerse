@@ -1,0 +1,10 @@
+Sub GetNewAppointment$()
+	local ReturnThis$
+	ReturnThis$ =  "[ " + str$(Spincontrol get "AppointmentFromSpincontrol") + ":00 to " 
+	ReturnThis$ = ReturnThis$ + str$(Spincontrol get "AppointmentToSpincontrol") + ":00 ]\n" 
+	if (Textcontrol Get$ "AppointmentWhat")<>"" ReturnThis$ = ReturnThis$ + (Textcontrol Get$ "AppointmentWhat") + "\n" 
+	if (Textcontrol Get$ "AppointmentWhere")<>"" ReturnThis$ = ReturnThis$ + "@ " + (Textcontrol Get$ "AppointmentWhere") + "\n" 
+	if (Textcontrol Get$ "AppointmentWho")<>"" ReturnThis$ = ReturnThis$ + "with " + (Textcontrol Get$ "AppointmentWho") + ".\n"
+	PaintBusyBar(Spincontrol get "AppointmentFromSpincontrol", Spincontrol get "AppointmentToSpincontrol")
+	Return ReturnThis$
+End sub

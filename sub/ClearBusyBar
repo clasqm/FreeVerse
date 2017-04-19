@@ -1,0 +1,9 @@
+sub ClearBusyBar()
+	local wheretopaint$
+	for f = 0 to 23
+		wheretopaint$= "indicator" + str$(f)
+		draw flush wheretopaint$
+		draw text 0,10, "□",wheretopaint$
+	next f
+end sub
+

@@ -1,0 +1,73 @@
+sub FillDayList()
+	local  month$,daysinmonth,entrylabel$, dothis$, marker$
+	month$=mid$(GetDate$, 4,2)
+	Switch month$
+		case "01":
+			month$ = "January"
+			daysinmonth = 31
+			break
+		case "02":
+			month$ = "February"
+			daysinmonth = 29
+			//correct for leap year
+			if mod(year,4) = 0 daysinmonth = 29
+			//This does not take account for lack of leap day in years divisible by 100
+			//If anyone is still using this in the year 2100, well, sorry. Hey, I'm most
+			//likely dead by now, so go ahead and fix it!
+			break
+		case "03":
+			month$ = "March"
+			daysinmonth = 31
+			break
+		case "04":
+			month$ = "April"
+			daysinmonth = 30
+			break
+		case "05":
+			month$ = "May"
+			daysinmonth = 31
+			break
+		case "06":
+			month$ = "June"
+			daysinmonth = 30
+			break
+		case "07":
+			month$ = "July"
+			daysinmonth = 31
+			break
+		case "08":
+			month$ = "August"
+			daysinmonth = 31
+			break
+		case "09":
+			month$ = "September"
+			daysinmonth = 30
+			break
+		case "10":
+			month$ = "October"
+			daysinmonth = 31
+			break
+		case "11":
+			month$ = "November"
+			daysinmonth = 30
+			break
+		case "12":
+			month$ = "December"
+			daysinmonth = 31
+			break
+		default:
+			break
+	end switch 
+	Listbox Clear "DayList"	
+		for f = 1 to daysinmonth
+			if f<10 then
+				entrylabel$ = "   " + str$(f)
+			else
+				entrylabel$ = " " + str$(f)
+			end if
+			entrylabel$ = entrylabel$ + " " + month$ + ", " + mid$(GetDate$, 7,4)
+			Listbox add "DayList", entrylabel$
+			Listbox select "DayList",val(mid$(GetDate$,1,2))
+		next f
+end sub
+

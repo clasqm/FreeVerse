@@ -1,0 +1,5 @@
+Sub GetNewDiaryItem$()
+	local ReturnThis$
+	ReturnThis$ = (TextEdit Get$ "DiaryTextEdit")
+	Return ReturnThis$
+End sub

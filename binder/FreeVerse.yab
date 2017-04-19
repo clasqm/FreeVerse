@@ -1,0 +1,1140 @@
+#!yab4ybd
+################################
+############# Prologue #############
+################################
+
+//Yabadabbadoo notification
+########DO NOT RENAME THIS FILE!########
+//Yabadabbadoo needs it to function.
+ 
+##Fill in these fields with your own particulars.
+##The variables will be used in the About Box and in naming the program.
+ 
+ProgramName$ = "FreeVerse"
+AuthorName$ = "Michel Clasquin-Johnson"
+ProgramVersion$ = "V0.3"
+ProgramBriefDescription$ = "An agenda program for your appointments, diary (journal) entries and to-dos."
+ProgramLicense$ = "Public Domain"
+ProgramAcknowledgements$ =""
+ 
+//*************************
+//*****Global Variables****
+//*************************
+ 
+## Technically, yab does not require you to declare global variables,
+##It just is a really, really good idea to do it anyway.
+// set DEBUG = 1 to print out all messages on the console
+DEBUG = 1
+//change this to DEBUG = 0 when you are ready to bind the program for distribution
+  
+##########################
+######Preliminary Commands#####
+##########################
+
+## Commands to run before the Main Loop come here.
+## e.g. setting up a window with a menu.
+ 
+
+//Create directories if they do not yet exist
+system("mkdir -p /boot/home/config/settings/FreeVerse")
+system("mkdir -p /boot/home/config/settings/FreeVerse/data")
+
+//Global Variables - declared here just for reference
+Settingsfile$ = "/boot/home/config/settings/FreeVerse/FreeVerse.settings"
+Datadir$ = "/boot/home/config/settings/FreeVerse/data/"
+SearchResults$ = system$("finddir B_COMMON_TEMP_DIRECTORY") 
+SearchResults$ = left$(SearchResults$, len(SearchResults$) -1) //strip off trailing newline
+SearchResults$ = SearchResults$ +"/FreeVerseSearchData"
+GetDate$ = ""
+CurrentFile$ = ""
+tempval$ = ""
+nCommands = 0
+
+OpenMainWindow(Settingsfile$):FillDayList()
+Window Set "MainWindow", "Title", "FreeVerse - " + GoGetDate$()
+
+ReadAndDisplay()
+ 
+#######End of Prologue#######
+
+
+//Yabadabbadoo notification
+########DO NOT RENAME THIS FILE!########
+//Yabadabbadoo needs it to function.
+
+//Main Message Loop
+dim msg$(1)
+while(not leavingLoop)
+	nCommands = token(message$, msg$(), "|")
+
+	for everyCommand = 1 to nCommands
+		if(DEBUG and msg$(everyCommand)<>"") print msg$(everyCommand)
+
+		switch(msg$(everyCommand))
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////QUIT///////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "_QuitRequested":
+			case "MainWindow:_QuitRequested":
+			case "MenuView:File:Quit":
+				SaveFile()
+				leavingLoop = true
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////HELP///////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "HelpBox:_QuitRequested":
+				window close "HelpBox"
+				break
+			case "MenuView:Help:Help":
+				ShowHelp()
+				break
+			case "MenuView:Help:HTML Help":
+				ShowHTMLHelp()
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////ABOUT///////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "MenuView:Help:About":
+				Alert ProgramName$ + " " + ProgramVersion$ + "\n" + "by " + AuthorName$ +"\n\n" + ProgramBriefDescription$ + "\n" + ProgramLicense$ + "\n" + ProgramAcknowledgements$, "OK", "none"
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////GO TO TODAY////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "TodayButton":
+			case "MenuView:Date:Today":
+				SaveFile()
+				SetTodaysDate():FillDayList()
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////GO TO NEXT MONTH///////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "NextMonthButton":
+			case "MenuView:Date:Next Month":
+				SaveFile()
+				GetDate$ = SetMonth$("next")
+				Calendar Set "DateSetter", GetDate$
+				GetDate$ = ""  //refresh
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////GO TO LAST MONTH///////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "MenuView:Date:Last Month":
+				SaveFile()
+				GetDate$ = SetMonth$("last")
+				Calendar Set "DateSetter", GetDate$
+				GetDate$ = ""  //refresh
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			/////////////////////////////////EDIT EXTERNALLY///////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			Case "EditorButton":
+			case "MenuView:File:View in Editor":
+				SaveFile()
+				system("/boot/system/apps/StyledEdit " + CurrentFile$ + " &")
+				break
+			Case "RefreshButton":
+			case "MenuView:File:Refresh":
+				GetDate$=""
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////PURGE//////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "MenuView:File:Purge Database":
+				SaveFile()
+				MainUIGrayOut(0,"Disable")
+				MakePurgeBox()
+				break
+			case "PurgeExitButton":
+				Window Close "PurgeBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "PurgeAllButton":
+				PurgeAll()
+				Window Close "PurgeBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "PurgeSearchResultsButton":
+				PurgeSearchResults()
+				Window Close "PurgeBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case"PurgeLastYearButton":
+				
+				Window Close "PurgeBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "PurgeFutureItemsButton":
+				
+				Window Close "PurgeBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "PurgeNoAppointmentsButton":
+				
+				Window Close "PurgeBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////////LABELS/////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "AppLabelButton":
+			case "MenuView:Labels:Appointments":
+				Textedit Add "DayCont","APPOINTMENTS\n==========\n"
+				break
+			case "ToDoLabelButton":
+			case "MenuView:Labels:To-Dos":
+				Textedit Add "DayCont","TO-DOs\n=====\n"
+				break
+			case "MenuView:Labels:To-Do: Shopping":
+				Textedit Add "DayCont","Shopping\n--------------\n"
+				break
+			case "DiaryLabelButton":
+			case "MenuView:Labels:Diary":
+				Textedit Add "DayCont","DIARY\n====\n"
+				break
+			case "MenuView:Labels:Diary: Highpoints":
+				Textedit Add "DayCont","Today's Highpoints\n-----------------------------\n"
+				break
+			case "MenuView:Labels:Diary: Lowpoints":
+				Textedit Add "DayCont","Today's Lowpoints\n----------------------------\n"
+				break
+			case "MenuView:Labels:Diary: Accomplishments":
+				Textedit Add "DayCont","Today's Accomplishments\n----------------------------------------\n"
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////APPOINTMENTS///////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "NewAppButton":
+			case "MenuView:Entries:Appointment":
+				MainUIGrayOut(0,"Disable")
+				MakeAppointmentBox()
+				break
+			case "NewAppointmentCancelButton":
+				Window Close "AppointmentBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "NewAppointmentOKButton":
+				if Spincontrol Get "AppointmentToSpincontrol" < Spincontrol Get "AppointmentFromSpincontrol" then
+					Alert "End of appointment before the Start!\nPlease try again.", "OK", "warning"
+					Spincontrol set "AppointmentToSpincontrol",24
+					break
+				end if
+				Textedit Add "DayCont", GetNewAppointment$()
+				Window Close "AppointmentBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			//////////////////////////////////TO-DOS/////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "NewToDoButton":
+			case "MenuView:Entries:To-Do":
+				MainUIGrayOut(0,"Disable")
+				MakeToDoBox()
+				break
+			case "NewToDoItemCancelButton":
+				Window Close "ToDoBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "NewToDoItemOKButton":
+				Textedit Add "DayCont", GetNewToDoItem$()
+				Window Close "ToDoBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			///////////////////////////////DIARY ENTRIES//////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "NewDiaryButton":
+			case "MenuView:Entries:Diary":
+				MainUIGrayOut(0,"Disable")
+				MakeDiaryBox()
+				break
+			case "NewDiaryItemCancelButton":
+				Window Close "DiaryBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			case "NewDiaryItemOKButton":
+				Textedit Add "DayCont", GetNewDiaryItem$()
+				Window Close "DiaryBox"
+				MainUIGrayOut(1,"Enable")
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			//////////////////////////////////EXTRAS//////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "MenuView:Extras:Thought for the Day":
+				Textedit Add "DayCont","THOUGHT FOR THE DAY\n===============\n" + system$("fortune") + "\n"
+				Menu Set "Extras", "Thought for the Day", "disable", "MenuView"
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			//////////////////////////////////SEARCH//////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			case "SearchButton":
+			case "MenuView:File:Search":
+				SaveFile()
+				MainUIGrayOut(0,"Disable")
+				GoSearch(TextControl Get$ "SearchBox", SearchResults$, Datadir$)
+				break
+			case "SearchWin:_QuitRequested":
+				Window Close "SearchWin"
+				MainUIGrayOut(1,"Enable")
+				TextControl Clear "SearchBox"
+				break
+			//////////////////////////////////////////////////////////////////////////////
+			////////////////////////////end of switches/////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////////
+			default:
+				break
+		end switch
+			///////////////////////////////////////////////////////////////////////////////////
+			///////////////////Check if user pressed ENTER in Searchbox////////////////////////
+			///////////////////////////////////////////////////////////////////////////////////		
+		tempval$=(msg$(everyCommand))
+		if left$(tempval$,10) = "SearchBox:" then
+			SaveFile()
+			MainUIGrayOut(0,"Disable")
+			GoSearch(mid$(tempval$,11), SearchResults$, Datadir$)
+		end if
+			///////////////////////////////////////////////////////////////////////////////////
+			///////////////////////Check for searchdisplay selection///////////////////////////
+			///////////////////////////////////////////////////////////////////////////////////
+		tempval$=(msg$(everyCommand))
+		if left$(tempval$,22) = "SearchDisplay:_Invoke:" then
+			SaveFile()
+			tempval$ = mid$(tempval$,23)
+			tempval$ = columnbox get$ "SearchDisplay", 1, val(tempval$)
+			Calendar Set "DateSetter", tempval$
+			Window Close "SearchWin"
+			MainUIGrayOut(1,"Enable")
+			TextControl Clear "SearchBox"
+		endif
+			///////////////////////////////////////////////////////////////////////////////////
+			///////////CHECK FOR DATE CHANGE AND REPAINT DATA IF NECESSARY/////////////////////
+			///////////////////////////////////////////////////////////////////////////////////
+		tempval$=(msg$(everyCommand))
+		if left$(tempval$,16) = "DayList:_Select:" then
+			if val(mid$(tempval$,17,2)) < 10 tempval$= left$(tempval$,16) + "0" + right$(tempval$,1)
+			tempval$ = right$(tempval$,2) + right$(GetDate$,8)
+			Calendar Set "DateSetter", tempval$
+		end if
+	next everyCommand
+
+	//use GoGetDate$() here to see if the date has changed
+	tempval$=GoGetDate$()
+	if tempval$ <> GetDate$ then
+		
+		//Save the current file before you do anything else
+		if GetDate$ <> "" SaveFile() //no save if a refresh has been requested
+		
+		//If only the day has changed, we can just reposition the selection in the listbox
+		if right$(GetDate$,7)=right$(tempval$,7) then
+			Listbox select "DayList",val(left$(tempval$,2))
+			GetDate$=tempval$
+		//Otherwise, we need to redraw the listbox
+		else
+			GetDate$=tempval$
+			FillDayList()
+		end if
+		
+		// Change titlebar
+		Window Set "MainWindow", "Title", "FreeVerse - " + GetDate$
+		
+		// Empty the BusyBar in preparation to repaint it
+		ClearBusyBar()	
+		
+		// Now get current date's contents and pour it into the textedit
+		ReadAndDisplay()
+
+	end if
+wend
+
+///////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////END OF MAIN LOOP///////////////////////////////////////////
+//////////////////////////////CLOSING DOWN ////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////
+CloseMainWindow(Settingsfile$)
+
+end
+
+sub ClearBusyBar()
+	local wheretopaint$
+	for f = 0 to 23
+		wheretopaint$= "indicator" + str$(f)
+		draw flush wheretopaint$
+		draw text 0,10, "□",wheretopaint$
+	next f
+end sub
+
+ sub CloseMainWindow(Settingsfile$)
+	across=Window Get "MainWindow", "Position-X"
+	updown=Window Get "MainWindow", "Position-Y"
+	open Settingsfile$ for writing as #1
+		print #1 across
+		print #1 updown
+	close #1
+	window close "MainWindow"
+	return
+end sub
+sub CloseWindow()
+	//Close down the main window
+	window close "MainWindow"
+end sub
+
+sub ConfirmPurge(counter)
+	local reallypurge
+	reallypurge = alert Str$(counter) + " day's records sent to the Trash.", "OK, fine", "NOOO! restore them!", "", "none"
+	return reallypurge
+end sub
+
+sub FillDayList()
+	local  month$,daysinmonth,entrylabel$, dothis$, marker$
+	month$=mid$(GetDate$, 4,2)
+	Switch month$
+		case "01":
+			month$ = "January"
+			daysinmonth = 31
+			break
+		case "02":
+			month$ = "February"
+			daysinmonth = 29
+			//correct for leap year
+			if mod(year,4) = 0 daysinmonth = 29
+			//This does not take account for lack of leap day in years divisible by 100
+			//If anyone is still using this in the year 2100, well, sorry. Hey, I'm most
+			//likely dead by now, so go ahead and fix it!
+			break
+		case "03":
+			month$ = "March"
+			daysinmonth = 31
+			break
+		case "04":
+			month$ = "April"
+			daysinmonth = 30
+			break
+		case "05":
+			month$ = "May"
+			daysinmonth = 31
+			break
+		case "06":
+			month$ = "June"
+			daysinmonth = 30
+			break
+		case "07":
+			month$ = "July"
+			daysinmonth = 31
+			break
+		case "08":
+			month$ = "August"
+			daysinmonth = 31
+			break
+		case "09":
+			month$ = "September"
+			daysinmonth = 30
+			break
+		case "10":
+			month$ = "October"
+			daysinmonth = 31
+			break
+		case "11":
+			month$ = "November"
+			daysinmonth = 30
+			break
+		case "12":
+			month$ = "December"
+			daysinmonth = 31
+			break
+		default:
+			break
+	end switch 
+	Listbox Clear "DayList"	
+		for f = 1 to daysinmonth
+			if f<10 then
+				entrylabel$ = "   " + str$(f)
+			else
+				entrylabel$ = " " + str$(f)
+			end if
+			entrylabel$ = entrylabel$ + " " + month$ + ", " + mid$(GetDate$, 7,4)
+			Listbox add "DayList", entrylabel$
+			Listbox select "DayList",val(mid$(GetDate$,1,2))
+		next f
+end sub
+
+Sub GetNewAppointment$()
+	local ReturnThis$
+	ReturnThis$ =  "[ " + str$(Spincontrol get "AppointmentFromSpincontrol") + ":00 to " 
+	ReturnThis$ = ReturnThis$ + str$(Spincontrol get "AppointmentToSpincontrol") + ":00 ]\n" 
+	if (Textcontrol Get$ "AppointmentWhat")<>"" ReturnThis$ = ReturnThis$ + (Textcontrol Get$ "AppointmentWhat") + "\n" 
+	if (Textcontrol Get$ "AppointmentWhere")<>"" ReturnThis$ = ReturnThis$ + "@ " + (Textcontrol Get$ "AppointmentWhere") + "\n" 
+	if (Textcontrol Get$ "AppointmentWho")<>"" ReturnThis$ = ReturnThis$ + "with " + (Textcontrol Get$ "AppointmentWho") + ".\n"
+	PaintBusyBar(Spincontrol get "AppointmentFromSpincontrol", Spincontrol get "AppointmentToSpincontrol")
+	Return ReturnThis$
+End sub
+Sub GetNewDiaryItem$()
+	local ReturnThis$
+	ReturnThis$ = (TextEdit Get$ "DiaryTextEdit")
+	Return ReturnThis$
+End sub
+Sub GetNewToDoItem$()
+	local ReturnThis$
+	ReturnThis$ = (TextEdit Get$ "ToDoTextEdit")
+	Return ReturnThis$
+End sub
+
+sub GoCreateFile$()
+	local locfilename$,dothis$
+	locfilename$=Datadir$ + GetDate$
+	dothis$="touch " + locfilename$
+	system(dothis$)
+	return locfilename$
+end sub
+
+sub GoGetDate$()
+	local LocGetDate$
+	LocGetDate$=Calendar Get$ "DateSetter"
+	return LocGetDate$
+end sub
+
+sub GoSearch(searchtext$, SearchResults$, Datadir$)
+	local dothis$,SearchResults2$
+	searchtext$ = trim$(searchtext$)
+	if searchtext$= "" then
+		alert "No Search text supplied. Please enter something to search for.", "OK", "None"
+		MainUIGrayOut(1,"Enable")
+		Return
+	else
+		SearchResults2$ = SearchResults$ + "2"
+		dothis$ = "cd " + Datadir$ + "; grep -i '" + searchtext$ + "' * > " + SearchResults2$:system(dothis$)
+		dothis$ = "sort -n -t- -k3,4 -k2,2 -k1,2 " + SearchResults2$ + ">" + SearchResults$:system(dothis$)
+		dothis$ = "rm -f "+ SearchResults2$: system(dothis$)
+	end if
+	ShowSearch(SearchResults$)
+end sub
+
+sub MainUIGrayOut(black, black$)
+//	While subsdiary window is up, disable the main window's UI (black = 0, black$= "Disable")
+// 	Re-enable it again with this same routing by setting black to 1 and black$ to "Enable"
+	Menu Set "File", "Purge Database", black$, "MenuView"
+	Menu Set "File", "View in Editor", black$, "MenuView"
+	Menu Set "File", "Refresh", black$, "MenuView"
+	Menu Set "File", "Search", black$, "MenuView"
+//	Menu Set "File", "Quit", black$, "MenuView"      // Let's let the user quit at any time
+	Menu Set "Date", "Today", black$, "MenuView"
+	Menu Set "Date", "Next Month", black$, "MenuView"
+	Menu Set "Date", "Last Month", black$, "MenuView"
+	Menu Set "Labels", "Appointments",black$, "MenuView"
+	Menu Set "Labels", "To-Dos",black$, "MenuView"
+	Menu Set "Labels", "To-Do: Shopping",black$, "MenuView"
+	Menu Set "Labels", "Diary",black$, "MenuView"
+	Menu Set "Labels", "Diary: Highpoints",black$, "MenuView"
+	Menu Set "Labels", "Diary: Lowpoints",black$, "MenuView"
+	Menu Set "Labels", "Diary: Accomplishments",black$, "MenuView"
+	Menu Set "Entries", "Appointment",black$, "MenuView"
+	Menu Set "Entries", "To-Do",black$, "MenuView"
+	Menu Set "Entries", "Diary",black$, "MenuView"
+	Menu Set "Extras", "Thought for the Day", black$, "MenuView"
+	Menu Set "Extras", "Today in History", black$, "MenuView"
+	Menu Set "Help", "Help", black$,"MenuView"
+	Menu Set "Help", "HTML Help", black$,"MenuView"
+	Menu Set "Help", "About", black$,"MenuView"
+	
+	Option Set "TodayButton", "Enabled", black
+	Option Set "NextMonthButton", "Enabled", black
+	Option Set "DateSetter", "Enabled", black
+	Option Set "AppLabelButton", "Enabled", black
+	Option Set "ToDoLabelButton", "Enabled", black
+	Option Set "DiaryLabelButton", "Enabled", black
+	Option Set "NewAppButton",  "Enabled", black
+	Option Set "NewToDoButton", "Enabled", black
+	Option Set "NewDiaryButton", "Enabled", black
+	Option set "SearchButton", "Enabled", black
+
+end sub
+
+sub MakeAppointmentBox()
+	MakeEntryBox("AppointmentBox")
+	Draw Text 20,20, "Enter a new Appointment","AppointmentBox"
+	Draw Line 20,23 to 180,23, "AppointmentBox"
+	Draw Text 5,50, "From:","AppointmentBox"
+	Spincontrol 60, 33, "AppointmentFromSpincontrol", "", 0, 23, 1, "AppointmentBox"
+	Draw Text 125,50, "o' clock","AppointmentBox"
+	Spincontrol set "AppointmentFromSpincontrol",0
+	Draw Text 5,80, "To:","AppointmentBox"
+	Spincontrol 60, 63, "AppointmentToSpincontrol", "", 1, 24, 1, "AppointmentBox"
+	Draw Text 125,80, "o' clock","AppointmentBox"
+	Spincontrol set "AppointmentToSpincontrol",24
+	TextControl 50,95 to 195,115,"AppointmentWhat", "", "", "AppointmentBox"
+	Draw Text 5,112, "What?", "AppointmentBox"
+	TextControl 50,120 to 195,140,"AppointmentWhere","", "", "AppointmentBox"
+	Draw Text 5,137, "Where?", "AppointmentBox"
+	TextControl 50,145 to 195,165,"AppointmentWho", "", "", "AppointmentBox"
+	Draw Text 5,162, "With?", "AppointmentBox"
+	Button 5,170 to 95,195,"NewAppointmentCancelButton","Cancel", "AppointmentBox"
+	Button 105,170 to 195,195, "NewAppointmentOKButton", "Accept", "AppointmentBox"
+End sub
+
+sub MakeDiaryBox()
+	local enterthis$
+	MakeEntryBox("DiaryBox")
+	Draw Text 30,20, "Enter a new Diary Item","DiaryBox"
+	Draw Line 30,23 to 170,23, "DiaryBox"
+	draw line 4,29 to 196,29, "DiaryBox" //upper horizontal
+	draw line 196,29 to 196,161, "DiaryBox"//right vertical
+	draw line 196,161 to 4,161, "DiaryBox"//LOWER HORIZONTAL
+	draw line 4,161 to 4,29, "DiaryBox" //left vertical
+	TextEdit 5, 30 to 195,160, "DiaryTextEdit",0, "DiaryBox"
+	enterthis$= "§ Dear Diary,\n\n"
+	TextEdit Add "DiaryTextEdit", enterthis$
+	Button 5,170 to 95,190,"NewDiaryItemCancelButton","Cancel", "DiaryBox"
+	Button 105,170 to 195,190, "NewDiaryItemOKButton", "Accept", "DiaryBox"
+end sub
+
+sub MakeEntryBox(boxname$)
+local CenterX, CenterY
+	CenterX = INT((Window Get "MainWindow", "Width")/2) + (Window Get "MainWindow","Position-X")
+	CenterY =INT((Window Get "MainWindow", "Height")/2) + (Window Get "MainWindow","Position-Y")
+	Window Open CenterX - 100, CenterY - 100 to CenterX + 100, CenterY + 100, boxname$, ""
+	Window Set boxname$, "Look", "Modal"
+	Window Set boxname$, "Feel", "Floating-App"
+	Window Set boxname$, "Flags", "Not-Resizable"
+end sub
+
+sub MakeMenu()
+	//Create menu in MainWindow
+	menu "File", "Quit", "Q", "MainWindow"
+	menu "Help", "About", "", "MainWindow"
+end sub
+
+sub MakePurgeBox()
+	MakeEntryBox("PurgeBox")
+	Button 1,1 to 200,30 ,"PurgeAllButton", "Purge the entire database", "PurgeBox"
+	Tooltip "PurgeAllButton", "Delete all entries. Warning:\nthis step cannot be undone.\nFiles will be deleted,\nnot sent to the Trash"
+	Button 1,32 to 200,62, "PurgeSearchResultsButton","Purge the last search results", "PurgeBox"
+	Tooltip "PurgeSearchResultsButton","Send all entries found by the last\nsearch operation to the Trash"
+	Button 1,64 to 200,94, "PurgeLastYearButton", "Purge all before 1 January", "PurgeBox"
+	Tooltip "PurgeLastYearButton","Not enabled in this version"
+	//"Send all items from before the beginning\nof the current year to the Trash"
+	Button 1,96 to 200,126, "PurgeFutureItemsButton", "Purge all set in future", "PurgeBox"
+	Tooltip "PurgeFutureItemsButton","Not enabled in this version"
+	//Send all items dated\nafter today to the Trash"
+	Button 1,128 to 200,158, "PurgeNoAppointmentsButton", "Purge without appointments", "PurgeBox"
+	Tooltip "PurgeNoAppointmentsButton","Not enabled in this version"
+	//Send all items that do not contain\nat least one appointment to the Trash"
+	Button 1,160 to 200,200, "PurgeExitButton", "Exit without purging", "PurgeBox"
+	
+	Option set "PurgeLastYearButton", "Enabled", 0
+	Option set "PurgeFutureItemsButton", "Enabled", 0
+	Option set "PurgeNoAppointmentsButton", "Enabled", 0
+end sub
+
+sub MakeToDoBox()
+	local enterthis$
+	MakeEntryBox("ToDoBox")
+	Draw Text 30,20, "Enter a new To-Do Item","ToDoBox"
+	Draw Line 30,23 to 170,25, "ToDoBox"
+	draw line 4,29 to 196,29, "ToDoBox" //upper horizontal
+	draw line 196,29 to 196,161, "ToDoBox"//right vertical
+	draw line 196,161 to 4,161, "ToDoBox"//LOWER HORIZONTAL
+	draw line 4,161 to 4,29, "ToDoBox" //left vertical
+	TextEdit 5, 30 to 195,160, "ToDoTextEdit",0, "ToDoBox"
+	enterthis$= "¶ Do this today:\n"
+	TextEdit Add "ToDoTextEdit", enterthis$
+	Button 5,170 to 95,190,"NewToDoItemCancelButton","Cancel", "ToDoBox"
+	Button 105,170 to 195,190, "NewToDoItemOKButton", "Accept", "ToDoBox"
+end sub
+
+sub OpenMainWindow(Settingsfile$)
+	local winwidth, winheight, buttonwidth, across, acrossend, updown, updownend, viewname$	
+	//Read positions settings from settings file
+	//create the settings file if it does not exist
+	open #1,"/boot/home/config/settings/FreeVerse/FreeVerse.settings", "a": close #1 
+	//Open for Append does not seem to work with any other way
+	// and this way does not work without the literal filename!
+	open Settingsfile$ for reading as #1
+	line input #1 across
+	line input #1 updown
+	close #1
+	if across = 0 or updown = 0 then //ie if the settings file was empty
+		across = 50
+		updown = 50
+	endif
+	if across > Peek("DesktopWidth") or updown > Peek("DesktopHeight") then //ie if user is using a smaller screensize than last time
+		across = 50
+		updown = 50
+	endif
+	//edit below to adjust dimensions of main window
+	acrossend = across + 485
+	updownend = updown + 606	
+	window open across,updown to acrossend,updownend, "MainWindow", "FreeVerse - "
+	Window Set "MainWindow", "Flags", "Not-Zoomable, Not-Resizable, Accept-First-Click"
+	winwidth = acrossend-across: winheight = updownend-updown
+	/////////////Menu view//////////////////	
+	view 0,0 to winwidth,20, "MenuView", "MainWindow"
+		Menu "File", "View in Editor", "E", "MenuView"
+		Menu "File", "Refresh", "R", "MenuView"
+		Menu "File", "Purge Database", "P", "MenuView"
+		Menu "File", "Search", "F", "MenuView"
+		Menu "File", "Quit", "Q", "MenuView"
+		Menu "Date", "Today", "CT", "MenuView"
+		Menu "Date", "Next Month", "CM", "MenuView"
+		Menu "Date", "Last Month", "CL", "MenuView"
+		Menu "Labels", "Appointments","SA", "MenuView"
+		Menu "Labels", "To-Dos","ST", "MenuView"
+		Menu "Labels", "To-Do: Shopping","SS", "MenuView"
+		Menu "Labels", "Diary","SD", "MenuView"
+		Menu "Labels", "Diary: Highpoints","SH", "MenuView"
+		Menu "Labels", "Diary: Lowpoints","SL", "MenuView"
+		Menu "Labels", "Diary: Accomplishments","SP", "MenuView"
+		Menu "Entries", "Appointment","A", "MenuView"
+		Menu "Entries", "To-Do","T", "MenuView"
+		Menu "Entries", "Diary","D", "MenuView"
+		Menu "Extras", "Thought for the Day", "", "MenuView"
+		menu "Help", "Help", "H","MenuView"
+		menu "Help", "HTML Help", "","MenuView"
+		menu "Help", "About", "","MenuView"
+	///////////////top row of widgets below menu //////////////
+	view 165,15 to winwidth, 50,"TopView", "MainWindow"
+		Button 100,7 to 175,32,"TodayButton", "Today", "TopView"
+		Button 180,7 to 280, 32,"NextMonthButton", "Next Month", "TopView"
+		Calendar 0,8,"DateSetter","DDMMYYYY-","", "TopView"
+	/////////////container for days of month////////////////////
+	view 0, 20 to 160, winheight, "MidView", "MainWindow"
+		listbox 2,0 to 160,winheight - 20, "DayList" ,0,"MidView"
+	////////////container for entered data/////////////////////
+	view 165,55 to winwidth, winheight, "TextView", "MainWindow"
+		textedit 1,1 to winwidth - 200,400, "DayCont", 1, "TextView"
+		Text 10, 405, "newlabels","Insert Labels", "TextView"
+		Button 5,418 to 132,443, "AppLabelButton", "Appointments", "TextView"
+		Button 137,418 to 214,443, "ToDoLabelButton", "To-Dos", "TextView"
+		Button 219,418 to 310,443, "DiaryLabelButton", "Diary", "TextView"
+		text 10, 450, "newentries","Insert New ...", "TextView"
+		Button 5,464 to 132,489, "NewAppButton", "Appointment", "TextView"
+		Button 137,464 to 214,489, "NewToDoButton", "To-Do", "TextView"
+		Button 219,464 to 310,489, "NewDiaryButton", "Diary", "TextView"		
+		text 5,495, "searchtext", "Search for ...", "TextView"
+		textcontrol 2,510 to 214,530, "SearchBox", "","","TextView"
+		Button 219,507 to 310,532, "SearchButton", "Search!", "TextView"
+		text 290,3, "zerohours", "00h","TextView"
+		//create column of indicators with names from indicator0 to indicator23
+		for f = 0 to 23
+			viewname$ = "indicator"+str$(f)
+			view winwidth-25, (f * 15) +80 to winwidth - 10,(f * 15) + 92, viewname$,"MainWindow"
+			draw text 0,10, "□", viewname$ 
+		next f 
+			text 290,392, "24hours", "24h","TextView"
+end sub
+
+sub OpenWindow()
+	//Setup the main window here
+	window open 100,100 to 600,500, "MainWindow", "Main Window"
+	MakeMenu()
+end sub
+
+sub PaintBusyBar(fromh,toh)
+	local wheretopaint$, dothis$
+	if fromh = toh toh=toh +1
+	for f = fromh+1 to toh
+		wheretopaint$= "indicator" + str$(f-1)
+		draw flush wheretopaint$
+		draw text 0,10, "■",wheretopaint$
+	next f
+end sub
+
+sub ParseBusyBar(appointment$)
+	local length,num, fromtime, totime, z$(3), y$(2)
+	// strip off angle brackets - leave spaces in case user "cleaned things up"
+	length = len(appointment$) -2
+	appointment$ = mid$(appointment$, 2, length)
+	// NOW strip off spaces
+	appointment$= trim$(appointment$)
+	// by now we should have "(X)X:00 to (Y)Y:00"
+	//let's split it in half
+	num = token(appointment$, z$(), " ")
+	//Now repeat to get the hour part for FROM
+	num = token(z$(1),y$(),":")
+	fromtime = val(y$(1))
+	//Now repeat to get the hour part for TO
+	num = token(z$(3),y$(),":")
+	totime = val(y$(1))
+	PaintBusyBar(fromtime, totime)
+end sub
+
+sub PurgeAll()
+local reallypurge
+	reallypurge = alert "Really delete the entire database?\nThis CANNOT be undone!", "Yes", "No", "", "warning"
+	if reallypurge = 1 then
+		system("rm -f /boot/home/config/settings/FreeVerse/data/*")
+		TextEdit Clear "DayCont"
+		ClearBusyBar()
+	end if
+end sub
+
+sub PurgeSearchResults()
+	local reallypurge, dothis$, file2trash$, item$, counter
+	dothis$ = "touch " + SearchResults$: system(dothis$) //create file if it does not exist
+	reallypurge = alert "Really send all the last search results to the Trash?", "Yes", "No", "", "warning"
+	if reallypurge = 1 then
+		open SearchResults$ for reading as #1
+		counter=0
+		while(not eof(1))
+			line input #1 item$
+			file2trash$ = Datadir$ + left$(item$, 10)
+			counter = counter +1
+			dothis$ = "trash " + file2trash$: system(dothis$)
+		wend
+		close #1
+		if counter = 0 then
+			alert "No search results found!\n\nPlease search for something,\nthen try purging again.", "OK", "none"
+			return
+		else
+			reallypurge = ConfirmPurge(counter)
+			if reallypurge = 2 then
+				open SearchResults$ for reading as #1
+				while(not eof(1))
+					line input #1 item$
+						file2trash$ = "/boot/trash/" + left$(item$, 10)
+					dothis$ = "trash --restore " + file2trash$: system(dothis$)
+				wend
+				close #1
+			else 
+				dothis$ = "rm -f " + SearchResults$: system(dothis$)
+				TextEdit Clear "DayCont"
+				ClearBusyBar()
+			end if
+		end if
+	end if
+end sub
+
+sub ReadAndDisplay()
+	local content$, totalcontent$
+	CurrentFile$=GoCreateFile$()
+	textedit clear "DayCont"
+	open CurrentFile$ for reading as #1
+	repeat
+		line input #1 content$
+			totalcontent$ = totalcontent$ + content$
+			if left$(content$,1) = "[" and right$(content$,1) = "]" then
+				ParseBusyBar(content$)
+			end if
+		textedit add "DayCont", content$
+		if not (EOF(1))textedit add "DayCont", "\n"
+		//the if not eof thing prevents a new line being added at the end
+		//every time you change the date and the file growing longer and longer
+	until (EOF(1))
+	close #1
+	if instr(totalcontent$, "THOUGHT FOR THE DAY") = 0 then
+		Menu Set "Extras", "Thought for the Day", "enable", "MenuView"
+	else
+		Menu Set "Extras", "Thought for the Day", "disable", "MenuView"
+	end if
+end sub
+
+sub SaveFile()
+		// not bothering to check for changes, just save the damn thing
+		open CurrentFile$ for writing as #1
+		print #1,Textedit Get$ "DayCont"
+		close #1
+end sub
+sub SetMonth$(dir$)
+	local month$, result$
+	result$ = GetDate$
+	month$ = mid$(GetDate$,4,2)
+	//change the month first
+	switch month$
+		case "01":
+			if dir$ = "next" mid$(result$,4,2)="02"
+			if dir$ = "last" mid$(result$,4,2)="12"
+			break
+		case "02":
+			if dir$ = "next" mid$(result$,4,2)="03"
+			if dir$ = "last" mid$(result$,4,2)="01"
+			break
+		case "03":
+			if dir$ = "next" mid$(result$,4,2)="04"
+			if dir$ = "last" mid$(result$,4,2)="02"
+			break
+		case "04":
+			if dir$ = "next" mid$(result$,4,2)="05"
+			if dir$ = "last" mid$(result$,4,2)="03"
+			break
+		case "05":
+			if dir$ = "next" mid$(result$,4,2)="06"
+			if dir$ = "last" mid$(result$,4,2)="04"
+			break
+		case "06":
+			if dir$ = "next" mid$(result$,4,2)="07"
+			if dir$ = "last" mid$(result$,4,2)="05"
+			break
+		case "07":
+			if dir$ = "next" mid$(result$,4,2)="08"
+			if dir$ = "last" mid$(result$,4,2)="06"
+			break
+		case "08":
+			if dir$ = "next" mid$(result$,4,2)="09"
+			if dir$ = "last" mid$(result$,4,2)="07"
+			break
+		case "09":
+			if dir$ = "next" mid$(result$,4,2)="10"
+			if dir$ = "last" mid$(result$,4,2)="08"
+			break
+		case "10":
+			if dir$ = "next" mid$(result$,4,2)="11"
+			if dir$ = "last" mid$(result$,4,2)="09"
+			break
+		case "11":
+			if dir$ = "next" mid$(result$,4,2)="12"
+			if dir$ = "last" mid$(result$,4,2)="10"
+			break
+		case "12":
+			if dir$ = "next" mid$(result$,4,2)="01"
+			if dir$ = "last" mid$(result$,4,2)="11"
+			break
+		default:
+			break
+	end switch
+	//	Now change the year
+	switch month$
+		case "01":
+			if dir$ = "last" right$(result$,4) = STR$(val(right$(result$,4))-1)
+			break
+		case "12":
+			if dir$ = "next" right$(result$,4) = STR$(val(right$(result$,4))+1)
+			break
+		default:
+			break
+	end switch			
+return result$
+end sub
+
+sub SetTodaysDate()
+	//use date$ to solve problem of session stretching over midnight.
+	local todaysdate$
+	todaysdate$=date$ //Use just once just in case this gets called exactly at midnight!
+	todaysdate$= mid$(todaysdate$,6,2) + "-" + mid$(todaysdate$,3,2) + "-" + mid$(todaysdate$,9,4)
+	Calendar Set "DateSetter", todaysdate$
+end sub
+
+sub ShowHelp()
+local CenterX, CenterY, help$
+	CenterX = INT((Window Get "MainWindow", "Width")/2) + (Window Get "MainWindow","Position-X")
+	CenterY = INT((Window Get "MainWindow", "Height")/2) + (Window Get "MainWindow","Position-Y")
+	Window Open CenterX - 200, CenterY - 200 to CenterX + 200, CenterY + 200, "HelpBox", "FreeVerse Help"
+	Window Set "HelpBox", "Feel", "Floating-App"
+	Window Set "HelpBox", "Flags", "Not-Resizable"
+	textedit 1,1 to 400,400, "HelpTextEdit",1 , "HelpBox"
+	Textedit set "HelpTextEdit", "editable", 0
+	restore Helpdata
+	do 
+		read help$
+		if left$(help$,1) = "<" read help$
+		if (help$ = "end_of_help_data") break
+		TextEdit Add "HelpTextEdit", help$ + "\n"
+	loop
+end sub
+
+sub ShowHTMLHelp()
+local help$, helpfile$, dothis$
+	helpfile$ = "/boot/common/cache/tmp/FreeVerse.html"
+	open helpfile$ for writing as #1
+	restore Helpdata
+	do 
+		read help$
+		if (help$ = "end_of_help_data") break
+		if left$(help$,2) = "<h" or left$(help$,3) = "</h" then
+			print #1, help$ 
+		elseif help$ = "<b>" or help$ = "</b>" then
+			print #1, help$ 
+		elseif help$ =" " then
+			print #1, "<br>"
+		else
+			print #1, help$ + "<br>"
+		end if
+	loop
+	close #1
+	dothis$ = "/boot/apps/WebPositive/WebPositive " + helpfile$ + " &": system(dothis$)
+end sub
+
+sub ShowSearch(SearchResults$)
+local CenterX, CenterY, dothis$, item$, row
+	CenterX = INT((Window Get "MainWindow", "Width")/2) + (Window Get "MainWindow","Position-X")
+	CenterY = INT((Window Get "MainWindow", "Height")/2) + (Window Get "MainWindow","Position-Y")
+	Window Open CenterX - 200, CenterY - 200 to CenterX + 200, CenterY + 200, "SearchWin", "Search Results"
+	Window Set "SearchWin", "Feel", "Floating-App"
+	Window Set "SearchWin", "Flags", "Not-Resizable"
+	columnbox 1,1 to 400,400, "SearchDisplay",0 , "resizable", "SearchWin"
+	tooltip "SearchDisplay", "Click to select\nDouble-click to activate"
+	columnbox column "SearchDisplay", "Date", 1, 200, 100, 100, "align-left"
+	columnbox column "SearchDisplay", "Content", 2, 350, 200, 300, "align-left"
+	open SearchResults$ for reading as #1
+	row = 1
+	while(not eof(1))
+		line input #1 item$
+		columnbox add "SearchDisplay", 1, row, 16, left$(item$, 10)
+		columnbox add "SearchDisplay", 2, row, 16, mid$(item$, 12,len(item$))
+		row = row + 1
+	wend
+	close #1
+end sub
+
+########################################
+###DATA statements, if any, come here###
+########################################
+
+Label Helpdata
+
+data "<html><head><title>FreeVerse Help</title></head><body><h1>"
+data "FREEVERSE v0.3"
+data "================="
+data "</h1>"
+data " "
+data "<b>"
+data "By Michel Clasquin-Johnson"
+data "Public Domain software 2014"
+data "</b>"
+data " "
+data "FreeVerse is an application in which you can enter your appointments, to-do's and diary entries. The entry area is completely free-form - if you like, you can just start typing in any way you please, so if you want to use this program to keep a record of sports scores or sexual conquests, feel free to do just that. Cut and Paste works by using the right-click button on your mouse or trackpad. However, the program also has features that let you enter the data in a more structured way."
+data " "
+data "When the program starts, you should see a list of the days in the current month. You can just click on a different day and start to enter your data for that day. Or you can select the date you want to see from the spinner control in the top centre of the program."
+data " "
+data "Many, but not all, features available from the menu are also available as dedicated buttons."
+data " "
+data "<h2>"
+data "FILE Menu"
+data "</h2>"
+data " "
+data "View in Editor: Open the current date's data in StyledEdit (or press ALT-Q)"
+data " "
+data "Refresh: Refresh the display of today's data after editing it in another program, such as StyledEdit (or press ALT-R)"
+data " "
+data "Purge DataBase: Remove unwanted entries"
+data "    This brings up a dialog box with the following options:"
+data "    * Purge the entire Database - This option deletes ALL entries permanently. It cannot be undone. USE WITH CARE."
+data "    * Purge the last search results - This removes all entries found in the last search operation in the current session, regardless of whether they are currently being displayed. You can find the purged entries in the Trash if you clicked on it by mistake."
+data "    * Purge all before 1 January - Not enabled in this version"
+//This option sends all entries that predate the current year to the Trash."
+data "    * Purge all set in future - Not enabled in this version"
+//This option sends all entries set in the future to the Trash."
+data "    * Purge without appointments - Not enabled in this version"
+//This option sends all  entries that do not contain appointments to the Trash, where appointments are identified by the >> characters at the beginnings of a line."
+data "    * Exit without purging."
+data " "
+data "PLEASE NOTE: When you purge the database, you remove or trash EVERYTHING contained in that day's entry: Appointments,to-do's, diary entries and freehand notes."
+data " "
+data "Search: Brings up a window containing case-insensitive search results for the phrase you have typed into the search field at the bottom of the window. Double-click on a result to move to that date"
+data " "
+data "Quit: Quit the program (or press ALT-Q)."
+data " "
+data "<h2>"
+data "DATE Menu"
+data "</h2>"
+data " "
+data "Today: Go to The current date (or press CTRL-ALT-T)."
+data " "
+data "Next Month: Go forward one month (or press CTRL-ALT-M)."
+data " "
+data "Last Month: Go backwards one month (or press CTRL-ALT-L)"
+data " "
+data "<h2>"
+data "LABELS Menu"
+data "</h2>"
+data " "
+data "Appointments: (or press SHFT-ALT-A)."
+data " "
+data "To-Dos:(or press SHFT-ALT-T)."
+data " "
+data "To-Dos: Shopping:(or press SHFT-ALT-S)."
+data " "
+data "Diary: (or press SHFT-ALT-D)."
+data " "
+data "Diary: HighPoints: (or press SHFT-ALT-H)."
+data " "
+data "Diary: LowPoints: (or press SHFT-ALT-L)."
+data " "
+data "Diary: Accomplishnments: (or press SHFT-ALT-P)."
+data " "
+data "<h2>"
+data "ENTRIES Menu"
+data "</h2>"
+data " "
+data "Appointment: (or press ALT-A). Opens a dialog box into which you enter the following:"
+data "    * Start time for the appointment"
+data "      (in hourly segments only, sorry, "
+data "      but you can safely edit it afterwards.)"
+data "    * End time for the appointment."
+data "    * Description of the appointment"
+data "    * Place where the appointment will be kept."
+data "    * Other people who will be attending"
+data " "
+data "Please do not edit out the  square brackets ([ and ]) surrounding the date. The program uses these to fill in the graphical representation of time spent in appointments and to purge items without them. Also, the Search function needs these."
+data " "
+data "To-Do: (or press ALT-T). Opens a dialog box in which"
+data "     you can enter a task or to-do item. Please do"
+data "     not edit out the ¶ character that starts the "
+data "     entry. The Search function needs these."
+data " "
+data "Diary: Enters a new diary item with the date already "
+data "     filled in. (or press ALT-D). Please do not edit"
+data "     out the § characters surrounding the date. The "
+data "     Search function needs these."
+data " "
+data "<h2>"
+data "EXTRAS Menu"
+data "</h2>"
+data " "
+data "Thought for the Day: Just for fun, this command enters"
+data "      a random fortune at the current insertion point."
+data " "
+data "<h2>"
+data "HELP Menu"
+data "</h2>"
+data " "
+data "Help: Display the Help for this program (or press ALT-H)."
+data " "
+data "HTML Help: Display the Help for this program in WebPositive"
+data " "
+data "About: Display an About box."
+data " "
+data "<h2>"
+data "FREQUENTLY ASKED QUESTIONS"
+data "</h2>"
+data " "
+data "Well, there haven't been any yet, but these are some likely candidates:"
+data " "
+data "Q: Where is my data?"
+data "A: /boot/home/config/settings/FreeVerse/data"
+data " "
+data "Q: Why text files? Why not use attributes?"
+data "A: The current version of yab does not support extended attributes directly. I have to shell out to system() every time and it slows down things horribly."
+data " "
+data "Q: Can I set the date format to month-day-year?"
+data "A: No. Maybe one day."
+data " "
+data "Q: I entered an appointment manually,but it is not showing up in the graphical representation on the right!"
+data "A: And it never will, not automatically, anyway. Even assuming that you have formatted the appointment correctly, constantly monitoring the text field and auto-updating the graphical representation would slow down the program unacceptably. Navigate away from the day (e.g. by clicking on another day to the left) and then return to the current day and it will be updated."
+data " "
+data "Q: How can I sort my appointments?"
+data "A: Cut and Paste using the right-click button on your mouse or trackpad. Even better, position your cursor carefully before you enter a new appointment.This is a low-priority enhancement."
+data " "
+data "Q: How can I move a To-Do to another date?"
+data "A: There's not much point to a to-do list if you don't actually DO things ☺. But Cut and Paste is your friend."
+data " "
+data "<h2>"
+data "VERSION HISTORY"
+data "</h2>"
+data " "
+data "0.3 - First version for Haiku with Package Management. No new features. Today in History feature removed."
+data "0.2 - UI redesign, with graphical representation of appointments, Search and some Purging abilities." 
+data "0.1.1 - some bug fixes, Today in History is working, but with more placeholders than data."
+data "0.1 -Initial release."
+data " "
+data "<h2>"
+data "FUTURE ENHANCEMENTS (in order of most likely implementation)"
+data "</h2>"
+data " "
+data "Change appointments from hourly intervals to minute-by-minute."
+data "Import / Export data."
+data "Internationalization (but only if I get some volunteers!)"
+data "Prevent program from creating lots of empty files when dates have just been clicked through without entering data."
+data "Allow month-day-year calendar format."
+data "Sort appointments."
+data "</body></html>"
+
+data "end_of_help_data"
+

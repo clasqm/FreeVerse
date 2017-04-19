@@ -1,0 +1,22 @@
+sub MakeAppointmentBox()
+	MakeEntryBox("AppointmentBox")
+	Draw Text 20,20, "Enter a new Appointment","AppointmentBox"
+	Draw Line 20,23 to 180,23, "AppointmentBox"
+	Draw Text 5,50, "From:","AppointmentBox"
+	Spincontrol 60, 33, "AppointmentFromSpincontrol", "", 0, 23, 1, "AppointmentBox"
+	Draw Text 125,50, "o' clock","AppointmentBox"
+	Spincontrol set "AppointmentFromSpincontrol",0
+	Draw Text 5,80, "To:","AppointmentBox"
+	Spincontrol 60, 63, "AppointmentToSpincontrol", "", 1, 24, 1, "AppointmentBox"
+	Draw Text 125,80, "o' clock","AppointmentBox"
+	Spincontrol set "AppointmentToSpincontrol",24
+	TextControl 50,95 to 195,115,"AppointmentWhat", "", "", "AppointmentBox"
+	Draw Text 5,112, "What?", "AppointmentBox"
+	TextControl 50,120 to 195,140,"AppointmentWhere","", "", "AppointmentBox"
+	Draw Text 5,137, "Where?", "AppointmentBox"
+	TextControl 50,145 to 195,165,"AppointmentWho", "", "", "AppointmentBox"
+	Draw Text 5,162, "With?", "AppointmentBox"
+	Button 5,170 to 95,195,"NewAppointmentCancelButton","Cancel", "AppointmentBox"
+	Button 105,170 to 195,195, "NewAppointmentOKButton", "Accept", "AppointmentBox"
+End sub
+

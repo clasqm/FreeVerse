@@ -1,0 +1,8 @@
+sub GoCreateFile$()
+	local locfilename$,dothis$
+	locfilename$=Datadir$ + GetDate$
+	dothis$="touch " + locfilename$
+	system(dothis$)
+	return locfilename$
+end sub
+

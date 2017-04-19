@@ -1,0 +1,71 @@
+sub SetMonth$(dir$)
+	local month$, result$
+	result$ = GetDate$
+	month$ = mid$(GetDate$,4,2)
+	//change the month first
+	switch month$
+		case "01":
+			if dir$ = "next" mid$(result$,4,2)="02"
+			if dir$ = "last" mid$(result$,4,2)="12"
+			break
+		case "02":
+			if dir$ = "next" mid$(result$,4,2)="03"
+			if dir$ = "last" mid$(result$,4,2)="01"
+			break
+		case "03":
+			if dir$ = "next" mid$(result$,4,2)="04"
+			if dir$ = "last" mid$(result$,4,2)="02"
+			break
+		case "04":
+			if dir$ = "next" mid$(result$,4,2)="05"
+			if dir$ = "last" mid$(result$,4,2)="03"
+			break
+		case "05":
+			if dir$ = "next" mid$(result$,4,2)="06"
+			if dir$ = "last" mid$(result$,4,2)="04"
+			break
+		case "06":
+			if dir$ = "next" mid$(result$,4,2)="07"
+			if dir$ = "last" mid$(result$,4,2)="05"
+			break
+		case "07":
+			if dir$ = "next" mid$(result$,4,2)="08"
+			if dir$ = "last" mid$(result$,4,2)="06"
+			break
+		case "08":
+			if dir$ = "next" mid$(result$,4,2)="09"
+			if dir$ = "last" mid$(result$,4,2)="07"
+			break
+		case "09":
+			if dir$ = "next" mid$(result$,4,2)="10"
+			if dir$ = "last" mid$(result$,4,2)="08"
+			break
+		case "10":
+			if dir$ = "next" mid$(result$,4,2)="11"
+			if dir$ = "last" mid$(result$,4,2)="09"
+			break
+		case "11":
+			if dir$ = "next" mid$(result$,4,2)="12"
+			if dir$ = "last" mid$(result$,4,2)="10"
+			break
+		case "12":
+			if dir$ = "next" mid$(result$,4,2)="01"
+			if dir$ = "last" mid$(result$,4,2)="11"
+			break
+		default:
+			break
+	end switch
+	//	Now change the year
+	switch month$
+		case "01":
+			if dir$ = "last" right$(result$,4) = STR$(val(right$(result$,4))-1)
+			break
+		case "12":
+			if dir$ = "next" right$(result$,4) = STR$(val(right$(result$,4))+1)
+			break
+		default:
+			break
+	end switch			
+return result$
+end sub
+

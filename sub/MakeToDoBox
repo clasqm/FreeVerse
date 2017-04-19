@@ -1,0 +1,16 @@
+sub MakeToDoBox()
+	local enterthis$
+	MakeEntryBox("ToDoBox")
+	Draw Text 30,20, "Enter a new To-Do Item","ToDoBox"
+	Draw Line 30,23 to 170,25, "ToDoBox"
+	draw line 4,29 to 196,29, "ToDoBox" //upper horizontal
+	draw line 196,29 to 196,161, "ToDoBox"//right vertical
+	draw line 196,161 to 4,161, "ToDoBox"//LOWER HORIZONTAL
+	draw line 4,161 to 4,29, "ToDoBox" //left vertical
+	TextEdit 5, 30 to 195,160, "ToDoTextEdit",0, "ToDoBox"
+	enterthis$= "¶ Do this today:\n"
+	TextEdit Add "ToDoTextEdit", enterthis$
+	Button 5,170 to 95,190,"NewToDoItemCancelButton","Cancel", "ToDoBox"
+	Button 105,170 to 195,190, "NewToDoItemOKButton", "Accept", "ToDoBox"
+end sub
+

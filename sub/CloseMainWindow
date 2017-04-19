@@ -1,0 +1,10 @@
+ sub CloseMainWindow(Settingsfile$)
+	across=Window Get "MainWindow", "Position-X"
+	updown=Window Get "MainWindow", "Position-Y"
+	open Settingsfile$ for writing as #1
+		print #1 across
+		print #1 updown
+	close #1
+	window close "MainWindow"
+	return
+end sub

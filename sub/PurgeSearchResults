@@ -1,0 +1,36 @@
+sub PurgeSearchResults()
+	local reallypurge, dothis$, file2trash$, item$, counter
+	dothis$ = "touch " + SearchResults$: system(dothis$) //create file if it does not exist
+	reallypurge = alert "Really send all the last search results to the Trash?", "Yes", "No", "", "warning"
+	if reallypurge = 1 then
+		open SearchResults$ for reading as #1
+		counter=0
+		while(not eof(1))
+			line input #1 item$
+			file2trash$ = Datadir$ + left$(item$, 10)
+			counter = counter +1
+			dothis$ = "trash " + file2trash$: system(dothis$)
+		wend
+		close #1
+		if counter = 0 then
+			alert "No search results found!\n\nPlease search for something,\nthen try purging again.", "OK", "none"
+			return
+		else
+			reallypurge = ConfirmPurge(counter)
+			if reallypurge = 2 then
+				open SearchResults$ for reading as #1
+				while(not eof(1))
+					line input #1 item$
+						file2trash$ = "/boot/trash/" + left$(item$, 10)
+					dothis$ = "trash --restore " + file2trash$: system(dothis$)
+				wend
+				close #1
+			else 
+				dothis$ = "rm -f " + SearchResults$: system(dothis$)
+				TextEdit Clear "DayCont"
+				ClearBusyBar()
+			end if
+		end if
+	end if
+end sub
+

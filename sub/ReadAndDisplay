@@ -1,0 +1,24 @@
+sub ReadAndDisplay()
+	local content$, totalcontent$
+	CurrentFile$=GoCreateFile$()
+	textedit clear "DayCont"
+	open CurrentFile$ for reading as #1
+	repeat
+		line input #1 content$
+			totalcontent$ = totalcontent$ + content$
+			if left$(content$,1) = "[" and right$(content$,1) = "]" then
+				ParseBusyBar(content$)
+			end if
+		textedit add "DayCont", content$
+		if not (EOF(1))textedit add "DayCont", "\n"
+		//the if not eof thing prevents a new line being added at the end
+		//every time you change the date and the file growing longer and longer
+	until (EOF(1))
+	close #1
+	if instr(totalcontent$, "THOUGHT FOR THE DAY") = 0 then
+		Menu Set "Extras", "Thought for the Day", "enable", "MenuView"
+	else
+		Menu Set "Extras", "Thought for the Day", "disable", "MenuView"
+	end if
+end sub
+

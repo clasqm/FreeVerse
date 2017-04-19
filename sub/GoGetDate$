@@ -1,0 +1,6 @@
+sub GoGetDate$()
+	local LocGetDate$
+	LocGetDate$=Calendar Get$ "DateSetter"
+	return LocGetDate$
+end sub
+

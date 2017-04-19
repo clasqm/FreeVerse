@@ -1,0 +1,22 @@
+sub MakePurgeBox()
+	MakeEntryBox("PurgeBox")
+	Button 1,1 to 200,30 ,"PurgeAllButton", "Purge the entire database", "PurgeBox"
+	Tooltip "PurgeAllButton", "Delete all entries. Warning:\nthis step cannot be undone.\nFiles will be deleted,\nnot sent to the Trash"
+	Button 1,32 to 200,62, "PurgeSearchResultsButton","Purge the last search results", "PurgeBox"
+	Tooltip "PurgeSearchResultsButton","Send all entries found by the last\nsearch operation to the Trash"
+	Button 1,64 to 200,94, "PurgeLastYearButton", "Purge all before 1 January", "PurgeBox"
+	Tooltip "PurgeLastYearButton","Not enabled in this version"
+	//"Send all items from before the beginning\nof the current year to the Trash"
+	Button 1,96 to 200,126, "PurgeFutureItemsButton", "Purge all set in future", "PurgeBox"
+	Tooltip "PurgeFutureItemsButton","Not enabled in this version"
+	//Send all items dated\nafter today to the Trash"
+	Button 1,128 to 200,158, "PurgeNoAppointmentsButton", "Purge without appointments", "PurgeBox"
+	Tooltip "PurgeNoAppointmentsButton","Not enabled in this version"
+	//Send all items that do not contain\nat least one appointment to the Trash"
+	Button 1,160 to 200,200, "PurgeExitButton", "Exit without purging", "PurgeBox"
+	
+	Option set "PurgeLastYearButton", "Enabled", 0
+	Option set "PurgeFutureItemsButton", "Enabled", 0
+	Option set "PurgeNoAppointmentsButton", "Enabled", 0
+end sub
+

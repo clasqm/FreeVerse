@@ -1,0 +1,22 @@
+sub ShowHTMLHelp()
+local help$, helpfile$, dothis$
+	helpfile$ = "/boot/common/cache/tmp/FreeVerse.html"
+	open helpfile$ for writing as #1
+	restore Helpdata
+	do 
+		read help$
+		if (help$ = "end_of_help_data") break
+		if left$(help$,2) = "<h" or left$(help$,3) = "</h" then
+			print #1, help$ 
+		elseif help$ = "<b>" or help$ = "</b>" then
+			print #1, help$ 
+		elseif help$ =" " then
+			print #1, "<br>"
+		else
+			print #1, help$ + "<br>"
+		end if
+	loop
+	close #1
+	dothis$ = "/boot/apps/WebPositive/WebPositive " + helpfile$ + " &": system(dothis$)
+end sub
+
